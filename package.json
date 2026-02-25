@@ -1,0 +1,22 @@
+{
+	"name": "cartwish_api",
+	"version": "1.0.0",
+	"description": "Backend API for cartwish",
+	"keywords": [
+		"api"
+	],
+	"license": "ISC",
+	"author": "Chester",
+	"type": "commonjs",
+	"main": "src/app.js",
+	"scripts": {
+		"dev": "nodemon -r dotenv/config src/app.js"
+	},
+	"dependencies": {
+		"express": "^5.2.1"
+	},
+	"devDependencies": {
+		"dotenv": "^17.3.1",
+		"nodemon": "^3.1.14"
+	}
+}
