@@ -1,5 +1,6 @@
 const User = require('./user.model.js');
 const STATUS_CODES = require('../../constants/statusCodes.js');
+const { createHashedPassword } = require('../../utils/bcrypt.js');
 
 class UserController {
 	async create(req, res) {
@@ -11,7 +12,10 @@ class UserController {
 				throw new Error('User already exist.');
 			}
 
-			const newUser = new User(userData);
+			const hashedPassword = await createHashedPassword(
+				userData.password,
+			);
+			const newUser = new User({ ...userData, password: hashedPassword });
 			const savedUser = await newUser.save();
 
 			res.status(STATUS_CODES.CREATED).json(savedUser);
