@@ -13,7 +13,7 @@ class Server {
 				console.log('✅ Success. Server is listening.');
 			});
 		} catch (error) {
-			throw new Error(error.message);
+			console.error('❌', error.message);
 		}
 	}
 }
