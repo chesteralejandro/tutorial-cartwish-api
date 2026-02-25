@@ -1,7 +1,7 @@
 const express = require('express');
 
 const server = require('./config/server.js');
-const userRoutes = require('./routes/user.routes.js');
+const userRoutes = require('./modules/user/user.routes.js');
 
 const app = express();
 
