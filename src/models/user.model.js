@@ -4,7 +4,6 @@ const USER_VALIDATION = {
 	name: { type: String, required: true, mingLength: 3 },
 	email: { type: String, required: true, unique: true, lowercase: true },
 	password: { type: String, required: false },
-	googleId: { type: String, unique: true },
 	deliveryAddress: { type: String, required: false },
 	role: { type: String, enum: ['user', 'admin'], default: 'user' },
 };
