@@ -1,7 +1,15 @@
 const express = require('express');
 
+const server = require('./config/server.js');
+
 const app = express();
 
-app.listen(process.env.PORT, () => {
-	console.log('✅ Success. Server is listening.');
-});
+function startApp() {
+	try {
+		server.listen(app);
+	} catch (error) {
+		console.error('❌', error.message);
+	}
+}
+
+startApp();
