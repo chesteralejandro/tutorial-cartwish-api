@@ -17,7 +17,9 @@
 		"express": "^5.2.1",
 		"joi": "^17.13.3",
 		"jsonwebtoken": "^9.0.2",
-		"mongoose": "^8.13.2"
+		"mongoose": "^8.13.2",
+		"passport": "^0.7.0",
+		"passport-google-oauth2": "^0.2.0"
 	},
 	"devDependencies": {
 		"dotenv": "^17.3.1",
