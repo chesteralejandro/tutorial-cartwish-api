@@ -16,6 +16,12 @@ const createUserSchema = Joi.object({
 });
 
 class UserController {
+	async showDashboard(req, res) {
+		const user = await User.findById(req.user._id).select('-password');
+
+		res.json(user);
+	}
+
 	async login(req, res) {
 		const { email, password } = req.body;
 		try {

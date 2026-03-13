@@ -1,5 +1,13 @@
 const jwt = require('jsonwebtoken');
 
 exports.generateToken = (data) => {
-	return jwt.sign(data, process.env.JWT_KEY, { expiresIn: '2h' });
+	const config = {
+		expiresIn: '2h',
+	};
+
+	return jwt.sign(data, process.env.JWT_KEY, config);
+};
+
+exports.verifyToken = (token) => {
+	return jwt.verify(token, process.env.JWT_KEY);
 };
