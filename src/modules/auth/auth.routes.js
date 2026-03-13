@@ -34,13 +34,61 @@ router.get(
 			}
 		} else {
 			// (User not available) Create new user. Generate token and send in response.
-			const newUser = new User({
+			userFound = new User({
 				name: profile.displayName,
 				email: profile.emails[0].value,
 				googleId: profile.id,
 			});
 
-			await newUser.save();
+			await userFound.save();
+		}
+
+		const token = generateToken({
+			_id: userFound._id,
+			name: userFound.name,
+		});
+
+		res.redirect(`http://localhost:5173/dashboard?token=${token}`);
+	},
+);
+
+router.get(
+	'/facebook',
+	passport.authenticate('facebook', { scope: ['public_profile', 'email'] }),
+);
+
+router.get(
+	'/facebook/callback',
+	passport.authenticate('facebook', {
+		session: false,
+		failureRedirect: FRONTEND_URL,
+	}),
+	async (req, res) => {
+		// Check user is available or not using googleId or email.
+		const profile = req.user;
+
+		let userFound = await User.findOne({
+			$or: [
+				{ facebookId: profile.id },
+				{ email: profile.emails[0].value },
+			],
+		});
+
+		if (userFound) {
+			// (User available) Update google ID. Generate token and send in response.
+			if (!userFound.facebookId) {
+				userFound.facebookId = profile.id;
+				await userFound.save();
+			}
+		} else {
+			// (User not available) Create new user. Generate token and send in response.
+			userFound = new User({
+				name: profile.displayName,
+				email: profile.emails[0].value,
+				facebookId: profile.id,
+			});
+
+			await userFound.save();
 		}
 
 		const token = generateToken({
