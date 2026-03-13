@@ -1,9 +1,12 @@
 const Joi = require('joi');
-const jwt = require('jsonwebtoken');
 
 const User = require('./user.model.js');
 const STATUS_CODES = require('../../constants/statusCodes.js');
-const { createHashedPassword } = require('../../utils/bcrypt.js');
+const {
+	createHashedPassword,
+	validatePassword,
+} = require('../../utils/bcrypt.js');
+const { generateToken } = require('../../utils/jwt.js');
 
 const createUserSchema = Joi.object({
 	name: Joi.string().min(3).required(),
@@ -13,7 +16,46 @@ const createUserSchema = Joi.object({
 });
 
 class UserController {
-	async create(req, res) {
+	async login(req, res) {
+		const { email, password } = req.body;
+		try {
+			const userFound = await User.findOne({ email });
+
+			if (!userFound) {
+				res.status(STATUS_CODES.UNAUTHORIZED).json({
+					message: 'Invalid Credentials ',
+				});
+
+				return;
+			}
+
+			const isPasswordValid = await validatePassword(
+				password,
+				userFound.password,
+			);
+
+			if (!isPasswordValid) {
+				res.status(STATUS_CODES.UNAUTHORIZED).json({
+					message: 'Invalid Credentials ',
+				});
+
+				return;
+			}
+
+			const token = generateToken({
+				_id: userFound._id,
+				name: userFound.name,
+			});
+
+			res.status(STATUS_CODES.OK).json(token);
+		} catch (error) {
+			res.status(STATUS_CODES.BAD_REQUEST).json({
+				message: error.message,
+			});
+		}
+	}
+
+	async register(req, res) {
 		const userData = req.body;
 		try {
 			const userFound = await User.findOne({ email: userData.email });
@@ -21,7 +63,9 @@ class UserController {
 			const joiValidation = createUserSchema.validate(req.body);
 
 			if (joiValidation.error) {
-				res.status(400).json(joiValidation.error.details[0].message);
+				res.status(STATUS_CODES.BAD_REQUEST).json(
+					joiValidation.error.details[0].message,
+				);
 				return;
 			}
 
