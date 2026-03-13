@@ -22,31 +22,7 @@ router.get(
 		// Check user is available or not using googleId or email.
 		const profile = req.user;
 
-		let userFound = await User.findOne({
-			$or: [{ googleId: profile.id }, { email: profile.emails[0].value }],
-		});
-
-		if (userFound) {
-			// (User available) Update google ID. Generate token and send in response.
-			if (!userFound.googleId) {
-				userFound.googleId = profile.id;
-				await userFound.save();
-			}
-		} else {
-			// (User not available) Create new user. Generate token and send in response.
-			userFound = new User({
-				name: profile.displayName,
-				email: profile.emails[0].value,
-				googleId: profile.id,
-			});
-
-			await userFound.save();
-		}
-
-		const token = generateToken({
-			_id: userFound._id,
-			name: userFound.name,
-		});
+		const token = await handleOAuthCallback(profile, 'googleId');
 
 		res.redirect(`http://localhost:5173/dashboard?token=${token}`);
 	},
@@ -67,37 +43,40 @@ router.get(
 		// Check user is available or not using googleId or email.
 		const profile = req.user;
 
-		let userFound = await User.findOne({
-			$or: [
-				{ facebookId: profile.id },
-				{ email: profile.emails[0].value },
-			],
-		});
-
-		if (userFound) {
-			// (User available) Update google ID. Generate token and send in response.
-			if (!userFound.facebookId) {
-				userFound.facebookId = profile.id;
-				await userFound.save();
-			}
-		} else {
-			// (User not available) Create new user. Generate token and send in response.
-			userFound = new User({
-				name: profile.displayName,
-				email: profile.emails[0].value,
-				facebookId: profile.id,
-			});
-
-			await userFound.save();
-		}
-
-		const token = generateToken({
-			_id: userFound._id,
-			name: userFound.name,
-		});
+		const token = await handleOAuthCallback(profile, 'facebookId');
 
 		res.redirect(`http://localhost:5173/dashboard?token=${token}`);
 	},
 );
+
+async function handleOAuthCallback(profile, providerId) {
+	let userFound = await User.findOne({
+		$or: [{ [providerId]: profile.id }, { email: profile.emails[0].value }],
+	});
+
+	if (userFound) {
+		// (User available) Update google ID. Generate token and send in response.
+		if (!userFound[providerId]) {
+			userFound[providerId] = profile.id;
+			await userFound.save();
+		}
+	} else {
+		// (User not available) Create new user. Generate token and send in response.
+		userFound = new User({
+			name: profile.displayName,
+			email: profile.emails[0].value,
+			[providerId]: profile.id,
+		});
+
+		await userFound.save();
+	}
+
+	const token = generateToken({
+		_id: userFound._id,
+		name: userFound.name,
+	});
+
+	return token;
+}
 
 module.exports = router;
