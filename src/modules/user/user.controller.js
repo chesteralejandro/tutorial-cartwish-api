@@ -1,7 +1,7 @@
 const Joi = require('joi');
 
 const User = require('./user.model.js');
-const STATUS_CODES = require('../../constants/statusCodes.js');
+const { STATUS_CODES } = require('../../config/constants.js');
 const {
 	createHashedPassword,
 	validatePassword,
