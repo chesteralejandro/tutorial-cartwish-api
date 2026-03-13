@@ -29,7 +29,7 @@ class UserController {
 
 			if (!userFound) {
 				res.status(STATUS_CODES.UNAUTHORIZED).json({
-					message: 'Invalid Credentials ',
+					message: 'Invalid Credentials',
 				});
 
 				return;
@@ -42,7 +42,7 @@ class UserController {
 
 			if (!isPasswordValid) {
 				res.status(STATUS_CODES.UNAUTHORIZED).json({
-					message: 'Invalid Credentials ',
+					message: 'Invalid Credentials',
 				});
 
 				return;
@@ -85,11 +85,10 @@ class UserController {
 			const newUser = new User({ ...userData, password: hashedPassword });
 			const savedUser = await newUser.save();
 
-			const token = jwt.sign(
-				{ _id: savedUser._id, name: savedUser.name },
-				process.env.JWT_KEY,
-				{ expiresIn: '2h' },
-			);
+			const token = generateToken({
+				_id: savedUser._id,
+				name: savedUser.name,
+			});
 
 			res.status(STATUS_CODES.CREATED).json(token);
 		} catch (error) {
