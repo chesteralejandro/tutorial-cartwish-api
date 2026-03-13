@@ -1,4 +1,5 @@
 const Joi = require('joi');
+const jwt = require('jsonwebtoken');
 
 const User = require('./user.model.js');
 const STATUS_CODES = require('../../constants/statusCodes.js');
@@ -34,7 +35,13 @@ class UserController {
 			const newUser = new User({ ...userData, password: hashedPassword });
 			const savedUser = await newUser.save();
 
-			res.status(STATUS_CODES.CREATED).json(savedUser);
+			const token = jwt.sign(
+				{ _id: savedUser._id, name: savedUser.name },
+				process.env.JWT_KEY,
+				{ expiresIn: '2h' },
+			);
+
+			res.status(STATUS_CODES.CREATED).json(token);
 		} catch (error) {
 			res.status(STATUS_CODES.BAD_REQUEST).json({
 				message: error.message,
