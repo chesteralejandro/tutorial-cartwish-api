@@ -8,6 +8,7 @@ const USER_VALIDATION = {
 	facebookId: { type: String, unique: true },
 	deliveryAddress: { type: String, required: false },
 	role: { type: String, enum: ['user', 'admin'], default: 'user' },
+	refreshToken: { type: String },
 };
 
 const USER_COLLECTION_NAME = 'User';

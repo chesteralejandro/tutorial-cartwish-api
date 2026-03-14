@@ -6,7 +6,7 @@ const {
 	createHashedPassword,
 	validatePassword,
 } = require('../../utils/bcrypt.js');
-const { generateToken } = require('../../utils/jwt.js');
+const { generateTokens } = require('../../utils/jwt.js');
 
 const createUserSchema = Joi.object({
 	name: Joi.string().min(3).required(),
@@ -48,12 +48,25 @@ class UserController {
 				return;
 			}
 
-			const token = generateToken({
+			const { accessToken, refreshToken } = generateTokens({
 				_id: userFound._id,
 				name: userFound.name,
 			});
 
-			res.status(STATUS_CODES.OK).json(token);
+			const hashedRefreshToken = await createHashedPassword(refreshToken);
+			userFound.refreshToken = hashedRefreshToken;
+
+			await userFound.save();
+
+			res.cookie('refreshToken', refreshToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === 'production',
+				sameSite: 'none',
+				// domain: 'api.backend.com',
+				maxAge: 1000 * 60 * 60 * 24 * 7,
+			});
+
+			res.status(STATUS_CODES.OK).json(accessToken);
 		} catch (error) {
 			res.status(STATUS_CODES.BAD_REQUEST).json({
 				message: error.message,
@@ -83,14 +96,29 @@ class UserController {
 				userData.password,
 			);
 			const newUser = new User({ ...userData, password: hashedPassword });
-			const savedUser = await newUser.save();
 
-			const token = generateToken({
-				_id: savedUser._id,
-				name: savedUser.name,
+			await newUser.save();
+
+			const { accessToken, refreshToken } = generateTokens({
+				_id: newUser._id,
+				name: newUser.name,
 			});
 
-			res.status(STATUS_CODES.CREATED).json(token);
+			const hashedRefreshToken = createHashedPassword(refreshToken);
+
+			newUser.refreshToken = hashedRefreshToken;
+
+			await newUser.save();
+
+			res.cookie('refreshToken', refreshToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === 'production',
+				sameSite: 'none',
+				// domain: 'api.backend.com',
+				maxAge: 1000 * 60 * 60 * 24 * 7,
+			});
+
+			res.status(STATUS_CODES.CREATED).json(accessToken);
 		} catch (error) {
 			res.status(STATUS_CODES.BAD_REQUEST).json({
 				message: error.message,
