@@ -3,7 +3,7 @@ const Joi = require('joi');
 const User = require('./user.model.js');
 const { STATUS_CODES } = require('../../config/constants.js');
 const {
-	createHashedPassword,
+	createHashedValue,
 	validatePassword,
 } = require('../../utils/bcrypt.js');
 const { generateTokens } = require('../../utils/jwt.js');
@@ -53,7 +53,7 @@ class UserController {
 				name: userFound.name,
 			});
 
-			const hashedRefreshToken = await createHashedPassword(refreshToken);
+			const hashedRefreshToken = await createHashedValue(refreshToken);
 			userFound.refreshToken = hashedRefreshToken;
 
 			await userFound.save();
@@ -92,9 +92,7 @@ class UserController {
 				throw new Error('User already exist.');
 			}
 
-			const hashedPassword = await createHashedPassword(
-				userData.password,
-			);
+			const hashedPassword = await createHashedValue(userData.password);
 			const newUser = new User({ ...userData, password: hashedPassword });
 
 			await newUser.save();
@@ -104,7 +102,7 @@ class UserController {
 				name: newUser.name,
 			});
 
-			const hashedRefreshToken = createHashedPassword(refreshToken);
+			const hashedRefreshToken = createHashedValue(refreshToken);
 
 			newUser.refreshToken = hashedRefreshToken;
 
