@@ -128,6 +128,48 @@ router.post('/refresh', async (req, res) => {
 	res.status(STATUS_CODES.OK).json(accessToken);
 });
 
+router.post('/logout', async (req, res) => {
+	const userRefreshToken = req.cookies.refreshToken;
+
+	if (!userRefreshToken) {
+		res.status(STATUS_CODES.UNAUTHORIZED).json({
+			message: 'No refresh token provided',
+		});
+
+		return;
+	}
+
+	let decodedUser;
+	try {
+		decodedUser = verifyToken(userRefreshToken);
+	} catch (error) {
+		res.status(STATUS_CODES.FORBIDDEN).json({
+			message: 'Invalid Refresh Token',
+		});
+
+		return;
+	}
+
+	const user = await User.findById(decodedUser._id);
+
+	if (!user) {
+		res.status(STATUS_CODES.NOT_FOUND).json({ message: 'User not found' });
+		return;
+	}
+
+	user.refreshToken = null;
+	await user.save();
+
+	res.clearCookie('refreshToken', {
+		httpOnly: true,
+		secure: process.env.NODE_ENV === 'production',
+		sameSite: 'none',
+		maxAge: 1000 * 60 * 60 * 24 * 7,
+	});
+
+	res.status(STATUS_CODES.OK).json({ message: 'Logged out successfully' });
+});
+
 async function handleOAuthCallback(profile, providerId) {
 	let userFound = await User.findOne({
 		$or: [{ [providerId]: profile.id }, { email: profile.emails[0].value }],
