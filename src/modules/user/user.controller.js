@@ -6,7 +6,7 @@ const {
 	createHashedValue,
 	validatePassword,
 } = require('../../utils/bcrypt.js');
-const { generateTokens } = require('../../utils/jwt.js');
+const jwt = require('../../utils/jwt.js');
 
 const createUserSchema = Joi.object({
 	name: Joi.string().min(3).required(),
@@ -48,7 +48,7 @@ class UserController {
 				return;
 			}
 
-			const { accessToken, refreshToken } = generateTokens({
+			const { accessToken, refreshToken } = jwt.createTokens({
 				_id: userFound._id,
 				name: userFound.name,
 			});
@@ -97,7 +97,7 @@ class UserController {
 
 			await newUser.save();
 
-			const { accessToken, refreshToken } = generateTokens({
+			const { accessToken, refreshToken } = jwt.createTokens({
 				_id: newUser._id,
 				name: newUser.name,
 			});

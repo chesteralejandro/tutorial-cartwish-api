@@ -1,12 +1,11 @@
-const jwt = require('jsonwebtoken');
-const { verifyToken } = require('../utils/jwt');
+const jwt = require('../utils/jwt');
 
 const { STATUS_CODES } = require('../config/constants');
 
 const authMiddleware = (req, res, next) => {
-	const authHeader = req.headers.authorization;
+	const headerAuthorization = req.headers.authorization;
 
-	if (!authHeader || !authHeader.startsWith('Bearer ')) {
+	if (!headerAuthorization || !headerAuthorization.startsWith('Bearer ')) {
 		res.status(STATUS_CODES.UNAUTHORIZED).json({
 			message: 'Authorization token required!',
 		});
@@ -14,17 +13,19 @@ const authMiddleware = (req, res, next) => {
 		return;
 	}
 
-	try {
-		const [_bearer, token] = authHeader.split(' ');
-		const decodedUser = verifyToken(token);
+	const [_bearer, accessToken] = headerAuthorization.split(' ');
+	const validatedAccessToken = jwt.validateAccessToken(accessToken);
 
-		req.user = decodedUser;
-		next();
-	} catch (error) {
+	if (!validatedAccessToken) {
 		res.status(STATUS_CODES.BAD_REQUEST).json({
 			message: 'Invalid Token!',
 		});
+
+		return;
 	}
+
+	req.user = validatedAccessToken;
+	next();
 };
 
 module.exports = authMiddleware;

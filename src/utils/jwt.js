@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-exports.generateTokens = (data) => {
+exports.createTokens = (data) => {
 	const accessToken = jwt.sign({ ...data }, process.env.TOKEN_KEY_ACCESS, {
 		expiresIn: '2h',
 	});
@@ -19,6 +19,28 @@ exports.generateTokens = (data) => {
 	};
 };
 
-exports.verifyToken = (token) => {
-	return jwt.verify(token, process.env.TOKEN_KEY_REFRESH);
+exports.validateAccessToken = (accessToken) => {
+	try {
+		const validatedAccessToken = jwt.verify(
+			accessToken,
+			process.env.TOKEN_KEY_ACCESS,
+		);
+
+		return validatedAccessToken;
+	} catch (error) {
+		return null;
+	}
+};
+
+exports.validateRefreshToken = (refreshToken) => {
+	try {
+		const validatedRefreshToken = jwt.verify(
+			refreshToken,
+			process.env.TOKEN_KEY_REFRESH,
+		);
+
+		return validatedRefreshToken;
+	} catch (error) {
+		return null;
+	}
 };

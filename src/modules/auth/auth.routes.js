@@ -2,7 +2,7 @@ const router = require('express').Router();
 const passport = require('passport');
 
 const User = require('../user/user.model');
-const { generateTokens, verifyToken } = require('../../utils/jwt.js');
+const jwt = require('../../utils/jwt.js');
 const {
 	createHashedValue,
 	validatePassword,
@@ -36,7 +36,6 @@ router.get(
 			httpOnly: true,
 			secure: process.env.NODE_ENV === 'production',
 			sameSite: 'none',
-			// domain: 'api.backend.com',
 			maxAge: 1000 * 60 * 60 * 24 * 7,
 		});
 
@@ -64,6 +63,13 @@ router.get(
 			'facebookId',
 		);
 
+		res.cookie('refreshToken', refreshToken, {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: 'none',
+			maxAge: 1000 * 60 * 60 * 24 * 7,
+		});
+
 		res.redirect(`http://localhost:5173/dashboard?token=${accessToken}`);
 	},
 );
@@ -79,10 +85,9 @@ router.post('/refresh', async (req, res) => {
 		return;
 	}
 
-	let decodedUser;
-	try {
-		decodedUser = verifyToken(userRefreshToken);
-	} catch (error) {
+	const decodedUser = jwt.validateRefreshToken(userRefreshToken);
+
+	if (!decodedUser) {
 		res.status(STATUS_CODES.FORBIDDEN).json({
 			message: 'Invalid Refresh Token',
 		});
@@ -108,7 +113,7 @@ router.post('/refresh', async (req, res) => {
 		});
 	}
 
-	const { accessToken, refreshToken } = generateTokens({
+	const { accessToken, refreshToken } = jwt.createTokens({
 		_id: user._id,
 		name: user.name,
 	});
@@ -139,10 +144,9 @@ router.post('/logout', async (req, res) => {
 		return;
 	}
 
-	let decodedUser;
-	try {
-		decodedUser = verifyToken(userRefreshToken);
-	} catch (error) {
+	const decodedUser = jwt.validateRefreshToken(userRefreshToken);
+
+	if (!decodedUser) {
 		res.status(STATUS_CODES.FORBIDDEN).json({
 			message: 'Invalid Refresh Token',
 		});
@@ -192,7 +196,7 @@ async function handleOAuthCallback(profile, providerId) {
 		await userFound.save();
 	}
 
-	const { accessToken, refreshToken } = generateTokens({
+	const { accessToken, refreshToken } = jwt.createTokens({
 		_id: userFound._id,
 		name: userFound.name,
 	});
