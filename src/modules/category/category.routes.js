@@ -3,6 +3,8 @@ const multer = require('multer');
 
 const { STATUS_CODES } = require('../../config/constants');
 const Category = require('./category.model');
+const checkRole = require('../../middlewares/checkRole.middleware');
+const authMiddleware = require('../../middlewares/auth.middleware');
 
 const storage = multer.diskStorage({
 	destination: (req, file, callback) => {
@@ -44,26 +46,32 @@ router.get('/', async (req, res) => {
 	res.status(STATUS_CODES.OK).json(categories);
 });
 
-router.post('/', upload.single('icon'), async (req, res) => {
-	if (!req.body.name || !req.file) {
-		res.status(STATUS_CODES.BAD_REQUEST).json({
-			message: 'Name and icon are required',
+router.post(
+	'/',
+	authMiddleware,
+	checkRole('admin'),
+	upload.single('icon'),
+	async (req, res) => {
+		if (!req.body.name || !req.file) {
+			res.status(STATUS_CODES.BAD_REQUEST).json({
+				message: 'Name and icon are required',
+			});
+
+			return;
+		}
+		console.log(req.file);
+
+		const newCategory = new Category({
+			name: req.body.name,
+			image: req.file.filename,
 		});
 
-		return;
-	}
-	console.log(req.file);
+		await newCategory.save();
 
-	const newCategory = new Category({
-		name: req.body.name,
-		image: req.file.filename,
-	});
-
-	await newCategory.save();
-
-	res.status(STATUS_CODES.CREATED).json({
-		message: 'Category added successfully!',
-	});
-});
+		res.status(STATUS_CODES.CREATED).json({
+			message: 'Category added successfully!',
+		});
+	},
+);
 
 module.exports = router;
