@@ -2,10 +2,7 @@ const Joi = require('joi');
 
 const User = require('./user.model.js');
 const { STATUS_CODES } = require('../../config/constants.js');
-const {
-	createHashedValue,
-	validatePassword,
-} = require('../../utils/bcrypt.js');
+const bcrypt = require('../../utils/bcrypt.js');
 const jwt = require('../../utils/jwt.js');
 
 const createUserSchema = Joi.object({
@@ -35,7 +32,7 @@ class UserController {
 				return;
 			}
 
-			const isPasswordValid = await validatePassword(
+			const isPasswordValid = await bcrypt.validatePassword(
 				password,
 				userFound.password,
 			);
@@ -53,7 +50,8 @@ class UserController {
 				name: userFound.name,
 			});
 
-			const hashedRefreshToken = await createHashedValue(refreshToken);
+			const hashedRefreshToken =
+				await bcrypt.createHashedValue(refreshToken);
 			userFound.refreshToken = hashedRefreshToken;
 
 			await userFound.save();
@@ -92,7 +90,9 @@ class UserController {
 				throw new Error('User already exist.');
 			}
 
-			const hashedPassword = await createHashedValue(userData.password);
+			const hashedPassword = await bcrypt.createHashedValue(
+				userData.password,
+			);
 			const newUser = new User({ ...userData, password: hashedPassword });
 
 			await newUser.save();
@@ -102,7 +102,7 @@ class UserController {
 				name: newUser.name,
 			});
 
-			const hashedRefreshToken = createHashedValue(refreshToken);
+			const hashedRefreshToken = bcrypt.createHashedValue(refreshToken);
 
 			newUser.refreshToken = hashedRefreshToken;
 
