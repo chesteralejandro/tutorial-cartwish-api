@@ -39,6 +39,11 @@ const upload = multer({
 	},
 });
 
+router.get('/', async (req, res) => {
+	const categories = await Category.find().sort('name');
+	res.status(STATUS_CODES.OK).json(categories);
+});
+
 router.post('/', upload.single('icon'), async (req, res) => {
 	if (!req.body.name || !req.file) {
 		res.status(STATUS_CODES.BAD_REQUEST).json({
