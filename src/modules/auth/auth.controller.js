@@ -173,6 +173,7 @@ async function handleOAuthCallback(profile, providerId) {
 	const { accessToken, refreshToken } = jwt.createTokens({
 		_id: userFound._id,
 		name: userFound.name,
+		role: userFound.role,
 	});
 
 	const hashedRefreshToken = await createHashedValue(refreshToken);

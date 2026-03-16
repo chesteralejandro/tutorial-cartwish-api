@@ -48,6 +48,7 @@ class UserController {
 			const { accessToken, refreshToken } = jwt.createTokens({
 				_id: userFound._id,
 				name: userFound.name,
+				role: userFound.role,
 			});
 
 			const hashedRefreshToken =
@@ -100,6 +101,7 @@ class UserController {
 			const { accessToken, refreshToken } = jwt.createTokens({
 				_id: newUser._id,
 				name: newUser.name,
+				role: newUser.role,
 			});
 
 			const hashedRefreshToken = bcrypt.createHashedValue(refreshToken);
