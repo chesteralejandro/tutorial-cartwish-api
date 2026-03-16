@@ -1,4 +1,4 @@
-const mongoose = requrie('mongoose');
+const mongoose = require('mongoose');
 
 const CATEGORY_VALIDATION = {
 	name: { type: String, required: true, unique: true },
