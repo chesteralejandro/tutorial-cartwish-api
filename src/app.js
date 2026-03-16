@@ -12,6 +12,7 @@ const app = express();
 app.use(passport.initialize());
 app.use(express.json());
 app.use(cookieParser());
+app.use('/upload/category', express.static('upload/category'));
 
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
