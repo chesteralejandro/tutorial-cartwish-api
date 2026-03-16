@@ -9,6 +9,7 @@ exports.createHashedValue = async (value) => {
 	return hashedValue;
 };
 
-exports.validatePassword = async (providedPassword, userPassword) => {
-	return await bcrypt.compare(providedPassword, userPassword);
+exports.validateFromHash = async (providedValue, hashedValue) => {
+	const isValueValid = await bcrypt.compare(providedValue, hashedValue);
+	return isValueValid;
 };

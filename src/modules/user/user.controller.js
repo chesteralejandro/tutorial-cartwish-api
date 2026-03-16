@@ -32,7 +32,7 @@ class UserController {
 				return;
 			}
 
-			const isPasswordValid = await bcrypt.validatePassword(
+			const isPasswordValid = await bcrypt.validateFromHash(
 				password,
 				userFound.password,
 			);

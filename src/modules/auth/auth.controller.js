@@ -72,7 +72,7 @@ class Auth {
 			return;
 		}
 
-		const isValidRefreshToken = await bcrypt.validatePassword(
+		const isValidRefreshToken = await bcrypt.validateFromHash(
 			userRefreshToken,
 			user.refreshToken,
 		);
