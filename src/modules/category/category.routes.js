@@ -8,7 +8,7 @@ const authMiddleware = require('../../middlewares/auth.middleware');
 
 const storage = multer.diskStorage({
 	destination: (req, file, callback) => {
-		callback(null, 'upload/category');
+		callback(null, 'upload/categories');
 	},
 	filename: (req, file, callback) => {
 		const timeStamp = Date.now();
