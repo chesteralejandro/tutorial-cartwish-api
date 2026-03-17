@@ -3,6 +3,8 @@ const multer = require('multer');
 
 const authMiddleware = require('../../middlewares/auth.middleware');
 const checkRole = require('../../middlewares/checkRole.middleware');
+const { STATUS_CODES } = require('../../config/constants');
+const Product = require('./product.model');
 
 const storage = multer.diskStorage({
 	destination: (req, file, callback) => {
@@ -46,8 +48,31 @@ router.post(
 	authMiddleware,
 	checkRole('seller'),
 	upload.array('images', MAX_FILES_NUMBER),
-	(req, res) => {
-		res.send('Seller is here');
+	async (req, res) => {
+		const { title, description, category, price, stock } = req.body;
+		const images = req.files.map((image) => image.filename);
+
+		if (images.length === 0) {
+			res.status(STATUS_CODES.BAD_REQUEST).json({
+				message: 'At least one image is required!',
+			});
+
+			return;
+		}
+
+		const newProduct = new Product({
+			title,
+			description,
+			category,
+			price,
+			stock,
+			images,
+			seller: req.user._id,
+		});
+
+		await newProduct.save();
+
+		res.status(STATUS_CODES.CREATED).json(newProduct);
 	},
 );
 
