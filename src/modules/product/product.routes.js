@@ -78,6 +78,7 @@ router.post(
 
 router.get('/', async (req, res) => {
 	const INITIAL_RATING = 0;
+	const ANTI_NAN_VALUE = 1;
 
 	const products = await Product.find()
 		.select('-description -seller -category -__v')
@@ -89,7 +90,8 @@ router.get('/', async (req, res) => {
 			(sum, review) => sum + review.rating,
 			INITIAL_RATING,
 		);
-		const averageRating = sumOfRatings / numberOfReviews;
+		const averageRating =
+			sumOfRatings / (numberOfReviews || ANTI_NAN_VALUE);
 
 		return {
 			...product,
