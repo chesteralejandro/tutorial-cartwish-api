@@ -5,6 +5,7 @@ const authMiddleware = require('../../middlewares/auth.middleware');
 const checkRole = require('../../middlewares/checkRole.middleware');
 const { STATUS_CODES } = require('../../config/constants');
 const Product = require('./product.model');
+const Category = require('../category/category.model');
 
 const storage = multer.diskStorage({
 	destination: (req, file, callback) => {
@@ -84,8 +85,25 @@ router.get('/', async (req, res) => {
 
 	const page = parseInt(req.query.page) || SINGLE_PAGE;
 	const perPage = parseInt(req.query.perPage) || ITEMS_PER_PAGE;
+	const category = req.query.category;
 
-	const products = await Product.find()
+	const query = {};
+
+	if (category) {
+		const categoryFound = await Category.findOne({ name: category });
+
+		if (!categoryFound) {
+			res.status(STATUS_CODES.NOT_FOUND).json({
+				message: 'Category not found!',
+			});
+
+			return;
+		}
+
+		query.category = categoryFound._id;
+	}
+
+	const products = await Product.find(query)
 		.select('-description -seller -category -__v')
 		.skip((page - SINGLE_PAGE) * perPage)
 		.limit(perPage)
