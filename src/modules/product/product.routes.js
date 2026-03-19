@@ -76,4 +76,29 @@ router.post(
 	},
 );
 
+router.get('/', async (req, res) => {
+	const INITIAL_RATING = 0;
+
+	const products = await Product.find()
+		.select('-description -seller -category -__v')
+		.lean(); // Returns clean object from mongoose without extra properties.
+
+	const updatedProducts = products.map((product) => {
+		const numberOfReviews = product.reviews.length;
+		const sumOfRatings = product.reviews.reduce(
+			(sum, review) => sum + review.rating,
+			INITIAL_RATING,
+		);
+		const averageRating = sumOfRatings / numberOfReviews;
+
+		return {
+			...product,
+			images: product.images[0],
+			reviews: { numberOfReviews, averageRating },
+		};
+	});
+
+	res.status(STATUS_CODES.OK).json(updatedProducts);
+});
+
 module.exports = router;
