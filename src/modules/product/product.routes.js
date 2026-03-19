@@ -77,11 +77,18 @@ router.post(
 );
 
 router.get('/', async (req, res) => {
+	const SINGLE_PAGE = 1;
+	const ITEMS_PER_PAGE = 8;
 	const INITIAL_RATING = 0;
 	const ANTI_NAN_VALUE = 1;
 
+	const page = parseInt(req.query.page) || SINGLE_PAGE;
+	const perPage = parseInt(req.query.perPage) || ITEMS_PER_PAGE;
+
 	const products = await Product.find()
 		.select('-description -seller -category -__v')
+		.skip((page - SINGLE_PAGE) * perPage)
+		.limit(perPage)
 		.lean(); // Returns clean object from mongoose without extra properties.
 
 	const updatedProducts = products.map((product) => {
@@ -100,7 +107,16 @@ router.get('/', async (req, res) => {
 		};
 	});
 
-	res.status(STATUS_CODES.OK).json(updatedProducts);
+	const totalProducts = await Product.countDocuments();
+	const totalPages = Math.ceil(totalProducts / perPage);
+
+	res.status(STATUS_CODES.OK).json({
+		updatedProducts,
+		totalProducts,
+		totalPages,
+		currentPage: page,
+		postPerPage: perPage,
+	});
 });
 
 module.exports = router;
