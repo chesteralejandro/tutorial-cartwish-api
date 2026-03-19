@@ -86,6 +86,7 @@ router.get('/', async (req, res) => {
 	const page = parseInt(req.query.page) || SINGLE_PAGE;
 	const perPage = parseInt(req.query.perPage) || ITEMS_PER_PAGE;
 	const category = req.query.category;
+	const search = req.query.search;
 
 	const query = {};
 
@@ -101,6 +102,10 @@ router.get('/', async (req, res) => {
 		}
 
 		query.category = categoryFound._id;
+	}
+
+	if (search) {
+		query.title = { $regex: search, $options: 'i' };
 	}
 
 	const products = await Product.find(query)
@@ -125,7 +130,7 @@ router.get('/', async (req, res) => {
 		};
 	});
 
-	const totalProducts = await Product.countDocuments();
+	const totalProducts = await Product.countDocuments(query);
 	const totalPages = Math.ceil(totalProducts / perPage);
 
 	res.status(STATUS_CODES.OK).json({
