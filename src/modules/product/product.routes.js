@@ -1,3 +1,5 @@
+const fs = require('node:fs/promises');
+const path = require('node:path');
 const router = require('express').Router();
 const multer = require('multer');
 
@@ -159,6 +161,62 @@ router.get('/:productId', async (req, res) => {
 	}
 
 	res.status(STATUS_CODES.OK).json(productFound);
+});
+
+router.delete('/:productId', authMiddleware, async (req, res) => {
+	const productId = req.params.productId;
+
+	const productFound =
+		await Product.findById(productId).select('seller images');
+
+	if (!productFound) {
+		res.status(STATUS_CODES.NOT_FOUND).json({
+			message: 'Product not found!',
+		});
+
+		return;
+	}
+
+	if (
+		req.user.role === 'admin' ||
+		req.user._id.toString() === productFound.seller.toString()
+	) {
+		await productFound.deleteOne();
+
+		if (productFound.images && Boolean(productFound.images.length)) {
+			productFound.images.forEach(async (imageName) => {
+				const fullPath = path.join(
+					__dirname,
+					'..',
+					'..',
+					'..',
+					'upload',
+					'products',
+					imageName,
+				);
+
+				try {
+					await fs.unlink(fullPath);
+				} catch (error) {
+					console.error(
+						'Error deleting file:',
+						fullPath,
+						error.message,
+					);
+				}
+			});
+		}
+
+		res.status(STATUS_CODES.OK).json({
+			message: 'Product deleted successfully!',
+		});
+
+		return;
+	}
+
+	res.status(STATUS_CODES.FORBIDDEN).json({
+		message: 'Access denied: Only admin or seller can delete this product!',
+	});
 });
 
 module.exports = router;
