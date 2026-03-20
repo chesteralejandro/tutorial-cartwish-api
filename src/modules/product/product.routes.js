@@ -142,4 +142,23 @@ router.get('/', async (req, res) => {
 	});
 });
 
+router.get('/:productId', async (req, res) => {
+	const productId = req.params.productId;
+
+	const productFound = await Product.findById(productId)
+		.populate('seller', '_id name email')
+		.populate('reviews.user', '_id name email')
+		.select('-category -__v');
+
+	if (!productFound) {
+		res.status(STATUS_CODES.NOT_FOUND).json({
+			message: 'Product not found!',
+		});
+
+		return;
+	}
+
+	res.status(STATUS_CODES.OK).json(productFound);
+});
+
 module.exports = router;
