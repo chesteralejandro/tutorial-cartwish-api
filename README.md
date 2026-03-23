@@ -41,9 +41,9 @@ A backend API for an e-commerce application. This is a tutorial from Code Bless 
 
 4.  Start the Application
 
-        ```bash
-        npm run dev
-        ```
+    ```bash
+    npm run dev
+    ```
 
 <br />
 
