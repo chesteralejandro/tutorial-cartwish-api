@@ -3,13 +3,13 @@ const router = require('express').Router();
 const productController = require('./product.controller');
 
 const authMiddleware = require('../../middlewares/auth.middleware');
-const checkRole = require('../../middlewares/checkRole.middleware');
+const handleRole = require('../../middlewares/handleRole');
 const handleUpload = require('../../middlewares/upload.middleware');
 
 router.post(
 	'/',
 	authMiddleware,
-	checkRole('seller'),
+	handleRole('seller'),
 	handleUpload('array', 'images', 'products'),
 	productController.create,
 );

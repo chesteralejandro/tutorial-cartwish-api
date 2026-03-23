@@ -1,6 +1,6 @@
 const { STATUS_CODES } = require('../config/constants');
 
-const checkRole = (role) => {
+const handleRole = (role) => {
 	return (req, res, next) => {
 		if (!req.user || req.user.role !== role) {
 			console.log(req.user.role);
@@ -15,4 +15,4 @@ const checkRole = (role) => {
 	};
 };
 
-module.exports = checkRole;
+module.exports = handleRole;
