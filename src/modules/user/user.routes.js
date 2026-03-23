@@ -1,9 +1,9 @@
 const router = require('express').Router();
-const authMiddleware = require('../../middlewares/auth.middleware.js');
+const handleAuth = require('../../middlewares/handleAuth.js');
 
 const userController = require('./user.controller.js');
 
-router.get('/', authMiddleware, userController.showDashboard);
+router.get('/', handleAuth, userController.showDashboard);
 
 router.post('/register', userController.register);
 router.post('/login', userController.login);

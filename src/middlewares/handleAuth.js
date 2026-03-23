@@ -2,7 +2,7 @@ const jwt = require('../utils/jwt');
 
 const { STATUS_CODES } = require('../config/constants');
 
-const authMiddleware = (req, res, next) => {
+const handleAuth = (req, res, next) => {
 	const headerAuthorization = req.headers.authorization;
 
 	if (!headerAuthorization || !headerAuthorization.startsWith('Bearer ')) {
@@ -28,4 +28,4 @@ const authMiddleware = (req, res, next) => {
 	next();
 };
 
-module.exports = authMiddleware;
+module.exports = handleAuth;

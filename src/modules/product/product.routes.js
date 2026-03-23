@@ -2,13 +2,13 @@ const router = require('express').Router();
 
 const productController = require('./product.controller');
 
-const authMiddleware = require('../../middlewares/auth.middleware');
+const handleAuth = require('../../middlewares/handleAuth');
 const handleRole = require('../../middlewares/handleRole');
 const handleUpload = require('../../middlewares/upload.middleware');
 
 router.post(
 	'/',
-	authMiddleware,
+	handleAuth,
 	handleRole('seller'),
 	handleUpload('array', 'images', 'products'),
 	productController.create,
@@ -18,6 +18,6 @@ router.get('/', productController.getAll);
 
 router.get('/:productId', productController.getOne);
 
-router.delete('/:productId', authMiddleware, productController.delete);
+router.delete('/:productId', handleAuth, productController.delete);
 
 module.exports = router;

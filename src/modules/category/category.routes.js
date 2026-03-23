@@ -3,14 +3,14 @@ const router = require('express').Router();
 const categoryController = require('./category.controller');
 
 const handleRole = require('../../middlewares/handleRole');
-const authMiddleware = require('../../middlewares/auth.middleware');
+const handleAuth = require('../../middlewares/handleAuth');
 const handleUpload = require('../../middlewares/upload.middleware');
 
 router.get('/', categoryController.getCategories);
 
 router.post(
 	'/',
-	authMiddleware,
+	handleAuth,
 	handleRole('admin'),
 	handleUpload('single', 'icon', 'categories'),
 	categoryController.create,
