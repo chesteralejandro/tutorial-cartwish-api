@@ -4,7 +4,7 @@ const productController = require('./product.controller');
 
 const handleAuth = require('../../middlewares/handleAuth');
 const handleRole = require('../../middlewares/handleRole');
-const handleUpload = require('../../middlewares/upload.middleware');
+const handleUpload = require('../../middlewares/handleUpload');
 
 router.post(
 	'/',

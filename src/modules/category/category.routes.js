@@ -4,7 +4,7 @@ const categoryController = require('./category.controller');
 
 const handleRole = require('../../middlewares/handleRole');
 const handleAuth = require('../../middlewares/handleAuth');
-const handleUpload = require('../../middlewares/upload.middleware');
+const handleUpload = require('../../middlewares/handleUpload');
 
 router.get('/', categoryController.getCategories);
 
