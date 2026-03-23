@@ -1,7 +1,8 @@
 const router = require('express').Router();
-const handleAuth = require('../../middleware/handleAuth.js');
 
 const userController = require('./user.controller.js');
+
+const handleAuth = require('../../middleware/handleAuth.js');
 
 router.get('/', handleAuth, userController.showDashboard);
 
