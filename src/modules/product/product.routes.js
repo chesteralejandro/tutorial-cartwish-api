@@ -2,9 +2,9 @@ const router = require('express').Router();
 
 const productController = require('./product.controller');
 
-const handleAuth = require('../../middlewares/handleAuth');
-const handleRole = require('../../middlewares/handleRole');
-const handleUpload = require('../../middlewares/handleUpload');
+const handleAuth = require('../../middleware/handleAuth');
+const handleRole = require('../../middleware/handleRole');
+const handleUpload = require('../../middleware/handleUpload');
 
 router.post(
 	'/',
