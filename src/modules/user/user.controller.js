@@ -1,9 +1,12 @@
 const Joi = require('joi');
 
-const User = require('./user.model.js');
-const { STATUS_CODES } = require('../../config/constants.js');
-const bcrypt = require('../../utils/bcrypt.js');
-const jwt = require('../../utils/jwt.js');
+const User = require('./user.model');
+
+const { STATUS_CODES } = require('../../config/constants');
+
+const bcrypt = require('../../utils/bcrypt');
+const jwt = require('../../utils/jwt');
+const appError = require('../../utils/appError');
 
 const createUserSchema = Joi.object({
 	name: Joi.string().min(3).required(),
@@ -19,111 +22,92 @@ class UserController {
 		res.json(user);
 	}
 
-	async login(req, res) {
+	async login(req, res, next) {
 		const { email, password } = req.body;
-		try {
-			const userFound = await User.findOne({ email });
 
-			if (!userFound) {
-				res.status(STATUS_CODES.UNAUTHORIZED).json({
-					message: 'Invalid Credentials',
-				});
+		const userFound = await User.findOne({ email });
 
-				return;
-			}
-
-			const isPasswordValid = await bcrypt.validateFromHash(
-				password,
-				userFound.password,
-			);
-
-			if (!isPasswordValid) {
-				res.status(STATUS_CODES.UNAUTHORIZED).json({
-					message: 'Invalid Credentials',
-				});
-
-				return;
-			}
-
-			const { accessToken, refreshToken } = jwt.createTokens({
-				_id: userFound._id,
-				name: userFound.name,
-				role: userFound.role,
-			});
-
-			const hashedRefreshToken =
-				await bcrypt.createHashedValue(refreshToken);
-			userFound.refreshToken = hashedRefreshToken;
-
-			await userFound.save();
-
-			res.cookie('refreshToken', refreshToken, {
-				httpOnly: true,
-				secure: process.env.NODE_ENV === 'production',
-				sameSite: 'none',
-				// domain: 'api.backend.com',
-				maxAge: 1000 * 60 * 60 * 24 * 7,
-			});
-
-			res.status(STATUS_CODES.OK).json(accessToken);
-		} catch (error) {
-			res.status(STATUS_CODES.BAD_REQUEST).json({
-				message: error.message,
-			});
+		if (!userFound) {
+			appError.create('Invalid Credentials', STATUS_CODES.UNAUTHORIZED);
 		}
+
+		const isPasswordValid = await bcrypt.validateFromHash(
+			password,
+			userFound.password,
+		);
+
+		if (!isPasswordValid) {
+			appError.create('Invalid Credentials', STATUS_CODES.UNAUTHORIZED);
+		}
+
+		const { accessToken, refreshToken } = jwt.createTokens({
+			_id: userFound._id,
+			name: userFound.name,
+			role: userFound.role,
+		});
+
+		const hashedRefreshToken = await bcrypt.createHashedValue(refreshToken);
+		userFound.refreshToken = hashedRefreshToken;
+
+		await userFound.save();
+
+		res.cookie('refreshToken', refreshToken, {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: 'none',
+			// domain: 'api.backend.com',
+			maxAge: 1000 * 60 * 60 * 24 * 7,
+		});
+
+		res.status(STATUS_CODES.OK).json(accessToken);
 	}
 
 	async register(req, res) {
 		const userData = req.body;
-		try {
-			const userFound = await User.findOne({ email: userData.email });
 
-			const joiValidation = createUserSchema.validate(req.body);
+		const userFound = await User.findOne({ email: userData.email });
 
-			if (joiValidation.error) {
-				res.status(STATUS_CODES.BAD_REQUEST).json(
-					joiValidation.error.details[0].message,
-				);
-				return;
-			}
+		const joiValidation = createUserSchema.validate(req.body);
 
-			if (userFound) {
-				throw new Error('User already exist.');
-			}
-
-			const hashedPassword = await bcrypt.createHashedValue(
-				userData.password,
+		if (joiValidation.error) {
+			appError.create(
+				joiValidation.error.details[0].message,
+				STATUS_CODES.BAD_REQUEST,
 			);
-			const newUser = new User({ ...userData, password: hashedPassword });
-
-			await newUser.save();
-
-			const { accessToken, refreshToken } = jwt.createTokens({
-				_id: newUser._id,
-				name: newUser.name,
-				role: newUser.role,
-			});
-
-			const hashedRefreshToken = bcrypt.createHashedValue(refreshToken);
-
-			newUser.refreshToken = hashedRefreshToken;
-
-			await newUser.save();
-
-			res.cookie('refreshToken', refreshToken, {
-				httpOnly: true,
-				secure: process.env.NODE_ENV === 'production',
-				sameSite: 'none',
-				// domain: 'api.backend.com',
-				maxAge: 1000 * 60 * 60 * 24 * 7,
-			});
-
-			res.status(STATUS_CODES.CREATED).json(accessToken);
-		} catch (error) {
-			res.status(STATUS_CODES.BAD_REQUEST).json({
-				message: error.message,
-			});
 		}
+
+		if (userFound) {
+			appError.create('User Already Exist.', STATUS_CODES.BAD_REQUEST);
+		}
+
+		const hashedPassword = await bcrypt.createHashedValue(
+			userData.password,
+		);
+		const newUser = new User({ ...userData, password: hashedPassword });
+
+		await newUser.save();
+
+		const { accessToken, refreshToken } = jwt.createTokens({
+			_id: newUser._id,
+			name: newUser.name,
+			role: newUser.role,
+		});
+
+		const hashedRefreshToken = bcrypt.createHashedValue(refreshToken);
+
+		newUser.refreshToken = hashedRefreshToken;
+
+		await newUser.save();
+
+		res.cookie('refreshToken', refreshToken, {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: 'none',
+			// domain: 'api.backend.com',
+			maxAge: 1000 * 60 * 60 * 24 * 7,
+		});
+
+		res.status(STATUS_CODES.CREATED).json(accessToken);
 	}
 }
 

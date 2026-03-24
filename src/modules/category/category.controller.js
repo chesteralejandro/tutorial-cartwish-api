@@ -2,6 +2,8 @@ const Category = require('./category.model');
 
 const { STATUS_CODES } = require('../../config/constants');
 
+const appError = require('../../utils/appError');
+
 class CategoryController {
 	async getCategories(_req, res) {
 		const categories = await Category.find().sort('name');
@@ -10,11 +12,10 @@ class CategoryController {
 
 	async create(req, res) {
 		if (!req.body.name || !req.file) {
-			res.status(STATUS_CODES.BAD_REQUEST).json({
-				message: 'Name and icon are required',
-			});
-
-			return;
+			appError.create(
+				'Name and Icon Are Required',
+				STATUS_CODES.BAD_REQUEST,
+			);
 		}
 
 		const newCategory = new Category({

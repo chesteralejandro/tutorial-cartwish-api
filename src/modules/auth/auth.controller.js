@@ -1,7 +1,10 @@
 const User = require('../user/user.model');
-const jwt = require('../../utils/jwt.js');
-const bcrypt = require('../../utils/bcrypt.js');
-const { STATUS_CODES } = require('../../config/constants.js');
+
+const { STATUS_CODES } = require('../../config/constants');
+
+const jwt = require('../../utils/jwt');
+const bcrypt = require('../../utils/bcrypt');
+const appError = require('../../utils/appError');
 
 class Auth {
 	setRefreshTokenCookie(res, refreshToken) {
@@ -45,31 +48,22 @@ class Auth {
 		const userRefreshToken = req.cookies.refreshToken;
 
 		if (!userRefreshToken) {
-			res.status(STATUS_CODES.UNAUTHORIZED).json({
-				message: 'No refresh token provided',
-			});
-
-			return;
+			appError.create(
+				'No Refresh Token Provided',
+				STATUS_CODES.UNAUTHORIZED,
+			);
 		}
 
 		const decodedUser = jwt.validateRefreshToken(userRefreshToken);
 
 		if (!decodedUser) {
-			res.status(STATUS_CODES.FORBIDDEN).json({
-				message: 'Invalid Refresh Token',
-			});
-
-			return;
+			appError.create('Invalid Refresh Token', STATUS_CODES.FORBIDDEN);
 		}
 
 		const user = await User.findById(decodedUser._id);
 
 		if (!user) {
-			res.status(STATUS_CODES.NOT_FOUND).json({
-				message: 'User not found',
-			});
-
-			return;
+			appError.create('User Not Found', STATUS_CODES.NOT_FOUND);
 		}
 
 		const isValidRefreshToken = await bcrypt.validateFromHash(
@@ -78,11 +72,10 @@ class Auth {
 		);
 
 		if (!isValidRefreshToken) {
-			res.status(STATUS_CODES.FORBIDDEN).json({
-				message: 'Refresh token is not valid',
-			});
-
-			return;
+			appError.create(
+				'Refresh Token Is Not Valid',
+				STATUS_CODES.FORBIDDEN,
+			);
 		}
 
 		const { accessToken, refreshToken } = jwt.createTokens({
@@ -104,31 +97,22 @@ class Auth {
 		const userRefreshToken = req.cookies.refreshToken;
 
 		if (!userRefreshToken) {
-			res.status(STATUS_CODES.UNAUTHORIZED).json({
-				message: 'No refresh token provided',
-			});
-
-			return;
+			appError.create(
+				'No Refresh Token Provided',
+				STATUS_CODES.UNAUTHORIZED,
+			);
 		}
 
 		const decodedUser = jwt.validateRefreshToken(userRefreshToken);
 
 		if (!decodedUser) {
-			res.status(STATUS_CODES.FORBIDDEN).json({
-				message: 'Invalid Refresh Token',
-			});
-
-			return;
+			appError.create('Invalid Refresh Token', STATUS_CODES.FORBIDDEN);
 		}
 
 		const user = await User.findById(decodedUser._id);
 
 		if (!user) {
-			res.status(STATUS_CODES.NOT_FOUND).json({
-				message: 'User not found',
-			});
-
-			return;
+			appError.create('User Not Found', STATUS_CODES.NOT_FOUND);
 		}
 
 		user.refreshToken = null;

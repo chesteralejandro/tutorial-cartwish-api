@@ -1,5 +1,8 @@
 const handleError = (error, _req, res, _next) => {
-	return res.status(500).json({ message: 'Internal Server Error.' });
+	const statusCode = error?.statusCode || 500;
+	const message = error?.message || 'Internal Server Error.';
+
+	return res.status(statusCode).json({ message });
 };
 
 module.exports = handleError;

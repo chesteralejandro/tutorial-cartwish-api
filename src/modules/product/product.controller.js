@@ -6,17 +6,18 @@ const Category = require('../category/category.model');
 
 const { STATUS_CODES } = require('../../config/constants');
 
+const appError = require('../../utils/appError');
+
 class ProductController {
 	async create(req, res) {
 		const { title, description, category, price, stock } = req.body;
 		const images = req.files.map((image) => image.filename);
 
 		if (images.length === 0) {
-			res.status(STATUS_CODES.BAD_REQUEST).json({
-				message: 'At least one image is required!',
-			});
-
-			return;
+			appError.create(
+				'At Least One Image Is Required!',
+				STATUS_CODES.BAD_REQUEST,
+			);
 		}
 
 		const newProduct = new Product({
@@ -51,11 +52,7 @@ class ProductController {
 			const categoryFound = await Category.findOne({ name: category });
 
 			if (!categoryFound) {
-				res.status(STATUS_CODES.NOT_FOUND).json({
-					message: 'Category not found!',
-				});
-
-				return;
+				appError.create('Category Not Found!', STATUS_CODES.NOT_FOUND);
 			}
 
 			query.category = categoryFound._id;
@@ -108,11 +105,7 @@ class ProductController {
 			.select('-category -__v');
 
 		if (!productFound) {
-			res.status(STATUS_CODES.NOT_FOUND).json({
-				message: 'Product not found!',
-			});
-
-			return;
+			appError.create('Product Not Found!', STATUS_CODES.NOT_FOUND);
 		}
 
 		res.status(STATUS_CODES.OK).json(productFound);
@@ -125,11 +118,7 @@ class ProductController {
 			await Product.findById(productId).select('seller images');
 
 		if (!productFound) {
-			res.status(STATUS_CODES.NOT_FOUND).json({
-				message: 'Product not found!',
-			});
-
-			return;
+			appError.create('Product Not Found!', STATUS_CODES.NOT_FOUND);
 		}
 
 		if (
@@ -169,10 +158,10 @@ class ProductController {
 			return;
 		}
 
-		res.status(STATUS_CODES.FORBIDDEN).json({
-			message:
-				'Access denied: Only admin or seller can delete this product!',
-		});
+		appError.create(
+			'Access Denied: Only Admin Or Seller Can Delete This Product!',
+			STATUS_CODES.FORBIDDEN,
+		);
 	}
 }
 
